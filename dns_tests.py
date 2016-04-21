@@ -1,6 +1,9 @@
 #!/usr/bin/env python2
 
 """ Tests for your DNS resolver and server """
+import unittest
+
+import sys
 
 import unittest
 import sys
@@ -8,8 +11,33 @@ import sys
 portnr = 5353
 server = "localhost"
 
+
+
+
+
+
 class TestResolver(unittest.TestCase):
-    pass
+    def setUpClass(cls):
+        print "class"
+
+    def setUp(self):
+        print "setup"
+
+    def tearDown(self):
+        print "teardown"
+
+
+    def test_upper(self):
+        self.assertEqual('foo'.upper(), 'FOO')
+        self.assertEqual('foo'.upper(), 'FOO')
+
+    def test_iets_anders(self):
+        self.assertTrue(True)
+
+
+
+
+
 
 
 class TestResolverCache(unittest.TestCase):
