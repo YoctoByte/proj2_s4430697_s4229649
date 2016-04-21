@@ -2,6 +2,9 @@
 
 """ Tests for your DNS resolver and server """
 
+import unittest
+import sys
+
 portnr = 5353
 server = "localhost"
 

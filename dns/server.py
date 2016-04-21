@@ -15,7 +15,7 @@ class RequestHandler(Thread):
 
     def __init__(self):
         """ Initialize the handler thread """
-        super().__init__()
+        super().__init__()  # Thread.__init__(self)
         self.daemon = True
         
     def run(self):

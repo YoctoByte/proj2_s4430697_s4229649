@@ -6,17 +6,14 @@ This script contains the code for starting a DNS server.
 """
 
 import dns.server
+import argparse
 
 if __name__ == "__main__":
     # Parse arguments
-    import argparse
     parser = argparse.ArgumentParser(description="DNS Server")
-    parser.add_argument("-c", "--caching", action="store_true",
-            help="Enable caching")
-    parser.add_argument("-t", "--ttl", metavar="time", type=int, default=0, 
-            help="TTL value of cached entries (if > 0)")
-    parser.add_argument("-p", "--port", type=int, default=5353,
-            help="Port which server listens on")
+    parser.add_argument("-c", "--caching", action="store_true", help="Enable caching")
+    parser.add_argument("-t", "--ttl", metavar="time", type=int, default=0,  help="TTL value of cached entries (if > 0)")
+    parser.add_argument("-p", "--port", type=int, default=5353, help="Port which server listens on")
     args = parser.parse_args()
 
     # Start server
