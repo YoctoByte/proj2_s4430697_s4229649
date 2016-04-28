@@ -17,7 +17,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     # Resolve hostname
-    resolver = dns.resolver.Resolver(["localhost"], 15, args.caching, args.ttl)
+    resolver = dns.resolver.Resolver(args.caching, args.ttl)
     hostname, aliases, addresses = resolver.gethostbyname(args.hostname)
     
     # Print output
