@@ -87,5 +87,3 @@ class RecordCache(object):
     def write_cache_file(self):
         """ Write the cache file to disk """
         pass
-
-
