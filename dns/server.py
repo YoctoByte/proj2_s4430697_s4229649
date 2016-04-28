@@ -15,7 +15,7 @@ class RequestHandler(Thread):
 
     def __init__(self, conn_socket):
         """ Initialize the handler thread """
-        super(Thread, self).__init__()
+        Thread.__init__(self)
         self.daemon = True
         self.run()
         
@@ -23,7 +23,21 @@ class RequestHandler(Thread):
         """ Run the handler thread """
         # TODO: Handle DNS request
 
-        # set or clear value of recursion
+        # 1. Set or clear value of recursion. If recursive, goto 5. Otherwise 2.
+
+        # 2. Search for available zones for the zone which is nearest ancestor to QNAME. If found go to 3 else go to 4.
+
+        # 3.
+        #   a. if QNAME is matched; node is found.
+        #   b. if match takes us out of authoritative data; referral. Goto 4.
+        #   c. if match is impossible; ... Goto 6
+
+        # 4. Start matching down the cache. If QNAME found in the cache, copy all Resource Records (RRs) attached to it
+        #    that match QTYPE into the answer section
+
+        # 5.
+
+        # 6.
         pass
 
 

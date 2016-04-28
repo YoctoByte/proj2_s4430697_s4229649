@@ -11,7 +11,7 @@ import socket
 
 from dns.cache import RecordCache
 from dns.classes import Class
-from dns.message import Message, Header, Question
+from dns import message
 from dns.rcodes import RCode
 from dns.types import Type
 
@@ -28,11 +28,11 @@ class Resolver(object):
         self.caching = caching
         self.ttl = ttl
 
-    def gethostbyname(self, hostname):
+    def gethostbyname(self, hostname, timeout):
         """ Translate a host name to IPv4 address.
 
         Currently this method contains an example. You will have to replace
-        this example with example with the algorithm described in section
+        this example with the algorithm described in section
         5.3.3 in RFC 1034.
 
         Args:
@@ -45,17 +45,17 @@ class Resolver(object):
         sock.settimeout(timeout)
 
         # Create and send query
-        question = dns.message.Question(hostname, Type.A, Class.IN)
-        header = dns.message.Header(9001, 0, 1, 0, 0, 0)
+        question = message.Question(hostname, Type.A, Class.IN)
+        header = message.Header(9001, 0, 1, 0, 0, 0)
         header.qr = 0
         header.opcode = 0
         header.rd = 1
-        query = dns.message.Message(header, [question])
+        query = message.Message(header, [question])
         sock.sendto(query.to_bytes(), ("8.8.8.8", 53))
 
         # Receive response
         data = sock.recv(512)
-        response = dns.message.Message.from_bytes(data)
+        response = message.Message.from_bytes(data)
 
         # Get data
         aliases = []
