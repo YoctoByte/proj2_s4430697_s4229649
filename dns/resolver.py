@@ -9,11 +9,12 @@ DNS server, but with a different list of servers.
 
 import socket
 
-from dns.cache import RecordCache
+# from dns.cache import RecordCache
 from dns.classes import Class
 from dns import message
-from dns.rcodes import RCode
+# from dns.rcodes import RCode
 from dns.types import Type
+
 
 class Resolver(object):
     """ DNS resolver """
@@ -28,7 +29,8 @@ class Resolver(object):
         self.caching = caching
         self.ttl = ttl
 
-    def gethostbyname(self, hostname, timeout):
+    @staticmethod
+    def gethostbyname(hostname, timeout):
         """ Translate a host name to IPv4 address.
 
         Currently this method contains an example. You will have to replace

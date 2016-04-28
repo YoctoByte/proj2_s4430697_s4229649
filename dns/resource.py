@@ -10,7 +10,7 @@ of your resolver and server.
 import socket
 import struct
 
-from dns.classes import Class
+# from dns.classes import Class
 from dns.types import Type
 
 
@@ -25,24 +25,18 @@ class ResourceRecord(object):
             class_ (Class): the class
             rdata (RecordData): the record data
         """
-        self.name     = name
-        self.type_    = type_
-        self.class_   = class_
-        self.ttl      = ttl
-        self.rdata    = rdata
+        self.name = name
+        self.type_ = type_
+        self.class_ = class_
+        self.ttl = ttl
+        self.rdata = rdata
 
     def to_bytes(self, offset, composer):
         """ Convert ResourceRecord to bytes """
         name = composer.to_bytes(offset, [self.name])
         offset += len(name)
         rdata = self.rdata.to_bytes(offset, composer)
-        return (name +
-            struct.pack("!HHIH",
-                self.type_,
-                self.class_,
-                self.ttl,
-                len(rdata)) + 
-            rdata)
+        return (name + struct.pack("!HHIH", self.type_, self.class_, self.ttl, len(rdata)) + rdata)
 
     @classmethod
     def from_bytes(cls, packet, offset, parser):
@@ -107,11 +101,9 @@ class RecordData(object):
             Type.AAAA: AAAARecordData
         }
         if type_ in classdict:
-            return classdict[type_].from_bytes(
-                packet, offset, rdlength, parser)
+            return classdict[type_].from_bytes(packet, offset, rdlength, parser)
         else:
-            return GenericRecordData.from_bytes(
-                packet, offset, rdlength, parser)
+            return GenericRecordData.from_bytes(packet, offset, rdlength, parser)
 
 
 class ARecordData(RecordData):

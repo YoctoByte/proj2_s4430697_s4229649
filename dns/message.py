@@ -6,19 +6,19 @@ This module contains classes for DNS messages, their header section and
 question fields. See section 4 of RFC 1035 for more info.
 """
 
-import socket
+# import socket
 import struct
 
-from dns.classes import Class
+# from dns.classes import Class
 from dns.domainname import Parser, Composer
 from dns.resource import ResourceRecord
-from dns.types import Type
+# from dns.types import Type
 
 
 class Message(object):
     """ DNS message """
 
-    def __init__(self, header, questions=[], answers=[], authorities=[], additionals=[]):
+    def __init__(self, header, questions=None, answers=None, authorities=None, additionals=None):
         """ Create a new DNS message
         
         Args:
@@ -29,9 +29,17 @@ class Message(object):
             additionals ([ResourceRecord]): the additional section
         """
         self.header = header
+        if not questions:
+            questions = []
         self.questions = questions
+        if not answers:
+            answers = []
         self.answers = answers
+        if not authorities:
+            authorities = []
         self.authorities = authorities
+        if not additionals:
+            additionals = []
         self.additionals = additionals
 
     @property
@@ -136,23 +144,24 @@ class Header(object):
     def to_bytes(self):
         """ Convert header to bytes """
         return struct.pack("!6H", 
-                self.ident,
-                self._flags, 
-                self.qd_count, 
-                self.an_count, 
-                self.ns_count, 
-                self.ar_count)
+                           self.ident,
+                           self._flags,
+                           self.qd_count,
+                           self.an_count,
+                           self.ns_count,
+                           self.ar_count)
 
     @classmethod
     def from_bytes(cls, packet):
         """ Convert Header from bytes """
         if len(packet) < 12:
-            raise ShortHeader
+            raise ValueError('length of packet is too short')
         return cls(*struct.unpack_from("!6H", packet))
    
     @property
     def flags(self):
         return self._flags
+
     @flags.setter
     def flags(self, value):
         if value >= (1 << 16):
@@ -162,6 +171,7 @@ class Header(object):
     @property
     def qr(self):
         return self._flags & (1 << 15)
+
     @qr.setter
     def qr(self, value):
         if value:
@@ -172,6 +182,7 @@ class Header(object):
     @property
     def opcode(self):
         return (self._flags & (((1 << 4) - 1) << 11)) >> 11
+
     @opcode.setter
     def opcode(self, value):
         if value > 0b1111:
@@ -182,6 +193,7 @@ class Header(object):
     @property
     def aa(self):
         return self._flags & (1 << 10)
+
     @aa.setter
     def aa(self, value):
         if value:
@@ -192,6 +204,7 @@ class Header(object):
     @property
     def tc(self):
         return self._flags & (1 << 9)
+
     @tc.setter
     def tc(self, value):
         if value:
@@ -202,6 +215,7 @@ class Header(object):
     @property
     def rd(self):
         return self._flags & (1 << 8)
+
     @rd.setter
     def rd(self, value):
         if value:
@@ -212,6 +226,7 @@ class Header(object):
     @property
     def ra(self):
         return self._flags & (1 << 7)
+
     @ra.setter
     def ra(self, value):
         if value:
@@ -221,7 +236,8 @@ class Header(object):
 
     @property
     def z(self):
-        return (self._flags & (((1 << 3) - 1) << 4) >> 4)
+        return self._flags & (((1 << 3) - 1) << 4) >> 4
+
     @z.setter
     def z(self, value):
         if value:
@@ -230,6 +246,7 @@ class Header(object):
     @property
     def rcode(self):
         return self._flags & ((1 << 4) - 1)
+
     @rcode.setter
     def rcode(self, value):
         if value > 0b1111:

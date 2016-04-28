@@ -27,7 +27,7 @@ class Composer(object):
             for label in reversed(labels):
                 name = label
                 if keys:
-                     name += "." + keys[-1]
+                    name += "." + keys[-1]
                 keys.append(name)
             keys.reverse()
 
@@ -44,8 +44,8 @@ class Composer(object):
                 else:
                     self.offsets[keys[j]] = offset
                     result += struct.pack("!B{}s".format(len(label)),
-                              len(label),
-                              label)
+                                          len(label),
+                                          label)
                     offset += 1 + len(label)
 
             # Add null character at end
@@ -90,8 +90,7 @@ class Parser(object):
                 # Normal label
                 else:
                     new_offset = offset + llength + 1
-                    label = struct.unpack_from("{}s".format(llength),
-                            packet, offset+1)[0]
+                    label = struct.unpack_from("{}s".format(llength), packet, offset+1)[0]
 
                 # Add label to dictionary
                 self.labels[offset] = label
