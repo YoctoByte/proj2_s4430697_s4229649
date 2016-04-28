@@ -1,5 +1,8 @@
 .idea
-
+.idea/*
+*.iws
+workspace.xml
+task.xml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
