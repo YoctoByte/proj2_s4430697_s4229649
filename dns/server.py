@@ -15,12 +15,15 @@ class RequestHandler(Thread):
 
     def __init__(self, conn_socket):
         """ Initialize the handler thread """
-        Thread.__init__(self)
+        super(Thread, self).__init__()
         self.daemon = True
+        self.run()
         
     def run(self):
         """ Run the handler thread """
         # TODO: Handle DNS request
+
+        # set or clear value of recursion
         pass
 
 
