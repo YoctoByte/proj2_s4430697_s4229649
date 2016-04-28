@@ -15,7 +15,7 @@ class RequestHandler(Thread):
 
     def __init__(self, conn_socket):
         """ Initialize the handler thread """
-        super().__init__()  # Thread.__init__(self)
+        Thread.__init__(self)
         self.daemon = True
         
     def run(self):
@@ -35,6 +35,7 @@ class Server(object):
             caching (bool): server uses resolver with caching if true
             ttl (int): ttl for records (if > 0) of cache
         """
+        self.done = False
         self.caching = caching
         self.ttl = ttl
         self.port = port
