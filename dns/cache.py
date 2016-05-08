@@ -33,18 +33,18 @@ class ResourceEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def resource_from_json(dct):
-    """ Convert JSON object to ResourceRecord
-    
-    Usage:
-        records = json.loads(string, object_hook=resource_from_json)
-    """
-    name = dct["name"]
-    type_ = Type.from_string(dct["type"])
-    class_ = Class.from_string(dct["class"])
-    ttl = dct["ttl"]
-    rdata = RecordData.create(type_, dct["rdata"])
-    return ResourceRecord(name, type_, class_, ttl, rdata)
+    def resource_from_json(dct):
+        """ Convert JSON object to ResourceRecord
+
+        Usage:
+            records = json.loads(string, object_hook=resource_from_json)
+        """
+        name = dct["name"]
+        type_ = Type.from_string(dct["type"])
+        class_ = Class.from_string(dct["class"])
+        ttl = dct["ttl"]
+        rdata = RecordData.create(type_, dct["rdata"])
+        return ResourceRecord(name, type_, class_, ttl, rdata)
 
 
 class RecordCache(object):
