@@ -18,7 +18,7 @@ if __name__ == "__main__":
     
     # Resolve hostname
     resolver = dns.resolver.Resolver(args.caching, args.ttl)
-    hostname, aliases, addresses = resolver.gethostbyname(args.hostname)
+    hostname, aliases, addresses = resolver.gethostbyname(args.hostname, 15)
     
     # Print output
     print(hostname)
