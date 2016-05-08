@@ -8,6 +8,8 @@ import sys
 import unittest
 import sys
 
+from dns.resolver import Resolver
+
 portnr = 5353
 server = "localhost"
 
@@ -17,32 +19,46 @@ server = "localhost"
 
 
 class TestResolver(unittest.TestCase):
+    @classmethod
     def setUpClass(cls):
-        print "class"
+        cls.resolver = Resolver(False, 0)
 
-    def setUp(self):
-        print "setup"
+    def test_solve_FQDN(self):
+        umass_FQDN = 'gaia.cs.umass.edu'
+        umass_IP = '128.119.245.12'
+        hostname, aliases, addresses = self.resolver.gethostbyname(umass_FQDN, 15)
+        self.assertEqual(hostname, umass_FQDN)
+        self.assertFalse(aliases)
+        self.assertEqual(addresses, [umass_IP])
 
-    def tearDown(self):
-        print "teardown"
-
-
-    def test_upper(self):
-        self.assertEqual('foo'.upper(), 'FOO')
-        self.assertEqual('foo'.upper(), 'FOO')
-
-    def test_iets_anders(self):
-        self.assertTrue(True)
-
-
-
-
+    def test_invalid_FQDN(self):
+        invalid_FQDN = 'wuiefhiwhao.rerttd.nl'
+        hostname, aliases, addresses = self.resolver.gethostbyname(invalid_FQDN, 15)
+        self.assertEqual(hostname, invalid_FQDN)
+        self.assertFalse(aliases)
+        self.assertFalse(addresses)
 
 
 
 class TestResolverCache(unittest.TestCase):
-    pass
+    @classmethod
+    def setUpClass(cls):
+        print "setUpClass"
+        cls.resolver = Resolver(True, 10)
 
+    def test_solve_FQDN(self):
+        umass_FQDN = 'gaia.cs.umass.edu'
+        umass_IP = '128.119.245.12'
+        hostname, aliases, addresses = self.resolver.gethostbyname(umass_FQDN, 15)
+        self.assertEqual(hostname, umass_FQDN)
+        self.assertFalse(aliases)
+        self.assertEqual(addresses, [umass_IP])
+
+    def test_invalid_cached_FQDN(self):
+        raise NotImplementedError
+
+    def test_wait_for_TTL_expiration(self):
+        raise NotImplementedError
 
 class TestServer(unittest.TestCase):
     pass
