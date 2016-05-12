@@ -8,7 +8,7 @@ DNS server, but with a different list of servers.
 """
 
 import socket
-from threading import Thread
+# from threading import Thread
 from dns.cache import RecordCache
 from dns.classes import Class
 from dns import message
@@ -48,6 +48,7 @@ class Resolver(object):
         self.SCLASS = Class.IN
         self.SLIST = []
         self.SBELT = ['8.8.8.8']  # TODO: slist moet eigenlijk geinitialiseerd worden vanuit een config file
+
         if(self.caching):
             self.CACHE = RecordCache(self.ttl)
 
@@ -55,21 +56,11 @@ class Resolver(object):
         if(self.caching):
             self.CACHE.lookup(hostname, Type.A, Class.IN)
 
-
         best_servers = self.find_best_servers()
 
-        # Get data
-        aliases = list()
-        for additional in response.additionals:
-            if additional.type_ == Type.CNAME:
-                aliases.append(additional.rdata.data)
-        addresses = list()
-        for answer in response.answers:
-            if answer.type_ == Type.A:
-                addresses.append(answer.rdata.data)
-
         for server in best_servers:
-            Thread(target=send_query, args=(server,)).start()
+            response = self.send_query(server, hostname, timeout)
+            self.analyze_response(response)
 
         return hostname, aliases, addresses
 
@@ -79,7 +70,7 @@ class Resolver(object):
         return self.SLIST
 
     # step 3:
-    def send_query(self, server_address, timeout):
+    def send_query(self, server_address, hostname, timeout):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(timeout)
 
@@ -96,9 +87,19 @@ class Resolver(object):
         data = sock.recv(512)
         response = message.Message.from_bytes(data)
 
+        return response
+
     # step 4:
     def analyze_response(self, response):
         # if response answers question or contains name error: chache data and return back to client
 
-        #
+        # Get data
+        aliases = list()
+        for additional in response.additionals:
+            if additional.type_ == Type.CNAME:
+                aliases.append(additional.rdata.data)
+        addresses = list()
+        for answer in response.answers:
+            if answer.type_ == Type.A:
+                addresses.append(answer.rdata.data)
         pass
