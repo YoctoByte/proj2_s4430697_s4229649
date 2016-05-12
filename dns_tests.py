@@ -42,8 +42,8 @@ class TestResolver(unittest.TestCase):
 
 class TestResolverCache(unittest.TestCase):
     @classmethod
-    """def setUpClass(cls):
-        print "setUpClass"
+    def setUpClass(cls):
+        """print "setUpClass"
         cls.resolver = Resolver(True, 10)
 
     def test_solve_FQDN(self):
