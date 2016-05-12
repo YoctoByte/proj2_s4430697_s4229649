@@ -10,6 +10,7 @@ DNS server, but with a different list of servers.
 import socket
 
 # from dns.cache import RecordCache
+from dns.cache import RecordCache
 from dns.classes import Class
 from dns import message
 # from dns.rcodes import RCode
@@ -43,8 +44,18 @@ class Resolver(object):
         Returns:
             (str, [str], [str]): (hostname, aliaslist, ipaddrlist)
         """
+        self.SNAME = hostname
+        self.STYPE = Type.A
+        self.SCLASS = Class.IN
+        self.SLIST = []
+        self.SBELT = ['8.8.8.8'] # TODO: slist moet eigenlijk geinitialiseerd worden vanuit een config file
+        if(self.caching):
+            self.CACHE = RecordCache(self.ttl)
 
-        # todo: hier cache
+        # Step 1 of rfc 1034 sect 5.3.3
+        if(self.caching):
+            self.CACHE.lookup(hostname, Type.A, Class.IN)
+
 
         best_servers = self.find_best_server()
 
