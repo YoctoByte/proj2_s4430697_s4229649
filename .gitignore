@@ -1,9 +1,5 @@
 .idea
-.idea/
-.idea/*
-.idea/misc.xml
 *.iws
-workspace.xml
 task.xml
 
 

@@ -42,7 +42,7 @@ class TestResolver(unittest.TestCase):
 
 class TestResolverCache(unittest.TestCase):
     @classmethod
-    def setUpClass(cls):
+    """def setUpClass(cls):
         print "setUpClass"
         cls.resolver = Resolver(True, 10)
 
@@ -58,7 +58,7 @@ class TestResolverCache(unittest.TestCase):
         raise NotImplementedError
 
     def test_wait_for_TTL_expiration(self):
-        raise NotImplementedError
+        raise NotImplementedError"""
 
 class TestServer(unittest.TestCase):
     pass
