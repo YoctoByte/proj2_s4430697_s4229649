@@ -8,7 +8,7 @@ DNS server, but with a different list of servers.
 """
 
 import socket
-
+from threading import Thread
 # from dns.cache import RecordCache
 from dns.cache import RecordCache
 from dns.classes import Class
@@ -29,7 +29,7 @@ class Resolver(object):
         """
         self.caching = caching
         self.ttl = ttl
-        self.dns_servers = ['8.8.8.8']
+        self.SLIST = ['8.8.8.8']
 
     def gethostbyname(self, hostname, timeout):
         """ Translate a host name to IPv4 address.
@@ -57,36 +57,40 @@ class Resolver(object):
             self.CACHE.lookup(hostname, Type.A, Class.IN)
 
 
-        best_servers = self.find_best_server()
+        best_servers = self.find_best_servers()
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(timeout)
+        def send_query(server_address):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.settimeout(timeout)
 
-        # Create and send query
-        question = message.Question(hostname, Type.A, Class.IN)
-        header = message.Header(9001, 0, 1, 0, 0, 0)
-        header.qr = 0
-        header.opcode = 0
-        header.rd = 1
-        query = message.Message(header, [question])
-        sock.sendto(query.to_bytes(), ('8.8.8.8', 53))
+            # Create and send query
+            question = message.Question(hostname, Type.A, Class.IN)
+            header = message.Header(9001, 0, 1, 0, 0, 0)
+            header.qr = 0
+            header.opcode = 0
+            header.rd = 1
+            query = message.Message(header, [question])
+            sock.sendto(query.to_bytes(), ('8.8.8.8', 53))
 
-        # Receive response
-        data = sock.recv(512)
-        response = message.Message.from_bytes(data)
+            # Receive response
+            data = sock.recv(512)
+            response = message.Message.from_bytes(data)
 
-        # Get data
-        aliases = list()
-        for additional in response.additionals:
-            if additional.type_ == Type.CNAME:
-                aliases.append(additional.rdata.data)
-        addresses = list()
-        for answer in response.answers:
-            if answer.type_ == Type.A:
-                addresses.append(answer.rdata.data)
+            # Get data
+            aliases = list()
+            for additional in response.additionals:
+                if additional.type_ == Type.CNAME:
+                    aliases.append(additional.rdata.data)
+            addresses = list()
+            for answer in response.answers:
+                if answer.type_ == Type.A:
+                    addresses.append(answer.rdata.data)
+
+        for server in best_servers:
+            response = Thread(target=send_query, args=(best_servers,))
 
         return hostname, aliases, addresses
 
-    def find_best_server(self):
+    def find_best_servers(self):
         # todo: implement this function
-        return ['8.8.8.8']
+        return self.SLIST
