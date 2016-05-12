@@ -49,17 +49,21 @@ class Resolver(object):
         self.SLIST = []
         self.SBELT = ['8.8.8.8']  # TODO: slist moet eigenlijk geinitialiseerd worden vanuit een config file
 
-        if(self.caching):
-            self.CACHE = RecordCache(self.ttl)
+        aliases = []
+        addresses = []
 
         # Step 1 of rfc 1034 sect 5.3.3
-        if(self.caching):
+        if self.caching:
+            self.CACHE = RecordCache(self.ttl)
             self.CACHE.lookup(hostname, Type.A, Class.IN)
 
-        best_servers = self.find_best_servers()
+        # step 2:
+        self.SLIST = self.find_best_servers()
 
-        for server in best_servers:
+        # step 3:
+        for server in self.SLIST:
             response = self.send_query(server, hostname, timeout)
+            # step 4:
             self.analyze_response(response)
 
         return hostname, aliases, addresses
@@ -91,8 +95,6 @@ class Resolver(object):
 
     # step 4:
     def analyze_response(self, response):
-        # if response answers question or contains name error: chache data and return back to client
-
         # Get data
         aliases = list()
         for additional in response.additionals:
@@ -102,4 +104,11 @@ class Resolver(object):
         for answer in response.answers:
             if answer.type_ == Type.A:
                 addresses.append(answer.rdata.data)
-        pass
+
+        # a. if response answers question or contains name error: chache data and return back to client
+
+        # b.
+
+        # c.
+
+        # d.
