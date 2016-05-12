@@ -28,9 +28,9 @@ class Resolver(object):
         """
         self.caching = caching
         self.ttl = ttl
+        self.dns_servers = ['8.8.8.8']
 
-    @staticmethod
-    def gethostbyname(hostname, timeout):
+    def gethostbyname(self, hostname, timeout):
         """ Translate a host name to IPv4 address.
 
         Currently this method contains an example. You will have to replace
@@ -43,6 +43,11 @@ class Resolver(object):
         Returns:
             (str, [str], [str]): (hostname, aliaslist, ipaddrlist)
         """
+
+        # todo: hier cache
+
+        best_servers = self.find_best_server()
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(timeout)
 
@@ -53,20 +58,24 @@ class Resolver(object):
         header.opcode = 0
         header.rd = 1
         query = message.Message(header, [question])
-        sock.sendto(query.to_bytes(), ("8.8.8.8", 53))
+        sock.sendto(query.to_bytes(), ('8.8.8.8', 53))
 
         # Receive response
         data = sock.recv(512)
         response = message.Message.from_bytes(data)
 
         # Get data
-        aliases = []
+        aliases = list()
         for additional in response.additionals:
             if additional.type_ == Type.CNAME:
                 aliases.append(additional.rdata.data)
-        addresses = []
+        addresses = list()
         for answer in response.answers:
             if answer.type_ == Type.A:
                 addresses.append(answer.rdata.data)
 
         return hostname, aliases, addresses
+
+    def find_best_server(self):
+        # todo: implement this function
+        return ['8.8.8.8']

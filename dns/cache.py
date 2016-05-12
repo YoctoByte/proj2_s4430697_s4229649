@@ -32,7 +32,7 @@ class ResourceEncoder(json.JSONEncoder):
             }
         return json.JSONEncoder.default(self, obj)
 
-
+    @staticmethod
     def resource_from_json(dct):
         """ Convert JSON object to ResourceRecord
 

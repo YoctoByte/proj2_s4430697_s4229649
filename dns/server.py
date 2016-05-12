@@ -35,9 +35,9 @@ class RequestHandler(Thread):
         # 4. Start matching down the cache. If QNAME found in the cache, copy all Resource Records (RRs) attached to it
         #    that match QTYPE into the answer section
 
-        # 5.
+        # 5. niet nodig?
 
-        # 6.
+        # 6. Using local data, attempt to add to RRs which may be useful to the additional section of the query
         pass
 
 
@@ -45,10 +45,10 @@ class Server(object):
     """ A recursive DNS server """
 
     def __init__(self, port, caching, ttl):
-        """ Initialize the server
+        """ Initialize the serverrue
         
         Args:
-            port (int): port that server is listening on
+            port (int): port that server is listening on i
             caching (bool): server uses resolver with caching if true
             ttl (int): ttl for records (if > 0) of cache
         """
