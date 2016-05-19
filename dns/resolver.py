@@ -14,6 +14,7 @@ from dns.classes import Class
 from dns import message
 # from dns.rcodes import RCode
 from dns.types import Type
+from dns.resource import ResourceRecord
 # import time
 
 
@@ -66,19 +67,19 @@ class Resolver(object):
         for server in list(self.SLIST):  # make a copy of SLIST
             response = self.send_query(server, hostname, timeout)
             # step 4:
-            for answer in response.answers:
-                if answer.type_ == Type.A:
-                    addresses.append(answer.rdata.data)
             for additional in response.additionals:
-                if additional.type_ == Type.CNAME:
-                    aliases.append(additional.rdata.data)
+                rr = ResourceRecord(additional.name, additional.type_, additional.class_, additional.ttl, additional.rdata)
+                aliases.append(rr)
+            for answer in response.answers:
+                rr = ResourceRecord(answer.name, answer.type_, answer.class_, answer.ttl, answer.rdata)
+                addresses.append(rr)
             for authority in response.authorities:
-                if authority.type_ == Type.NS:
-                    authority_data = authority.rdata.data
-                    if is_ip_address(authority_data):
-                        pass
-                    else:
-                        pass
+                rr = ResourceRecord(authority.name, authority.type_, authority.class_, authority.ttl, authority.rdata)
+                data = rr.rdata.data
+                if rr.type_ == Type.NS:
+                    pass  # data is a host name
+                if rr.type_ == Type.A:
+                    pass  # for IN class, data is a 32 bit ip address
 
         return self.SNAME, aliases, addresses
 
@@ -109,6 +110,3 @@ class Resolver(object):
         response = message.Message.from_bytes(data)
 
         return response
-
-def is_ip_address(string):
-    return not any(ch.isalpha() for ch in string)
