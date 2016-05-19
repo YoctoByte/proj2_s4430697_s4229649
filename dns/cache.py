@@ -49,6 +49,7 @@ class ResourceEncoder(json.JSONEncoder):
 
 class RecordCache(object):
     """ Cache for ResourceRecords """
+    cache_dir = "cache\cache.txt"
 
     def __init__(self, ttl):
         """ Initialize the RecordCache
@@ -70,7 +71,10 @@ class RecordCache(object):
             type_ (Type): type
             class_ (Class): class
         """
-        pass
+        for record in self.records:
+            if dname == record.name and type_ == record.type_ and class_ == record.class_:
+                return record
+
     
     def add_record(self, record):
         """ Add a new Record to the cache
@@ -78,12 +82,16 @@ class RecordCache(object):
         Args:
             record (ResourceRecord): the record added to the cache
         """
-        pass
+        self.records.append(record)
     
     def read_cache_file(self):
         """ Read the cache file from disk """
-        pass
+        with open(self.cache_dir, 'r') as file:
+            json_records = file.read()
+            records = json.loads(json_records, object_hook=ResourceEncoder.resource_from_json)
 
     def write_cache_file(self):
         """ Write the cache file to disk """
-        pass
+        with open(self.cache_dir, 'w') as file:
+            json_records = json.dumps(self.records, cls=ResourceEncoder, indent=4)
+            file.write(json_records)

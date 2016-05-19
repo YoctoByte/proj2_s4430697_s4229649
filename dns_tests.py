@@ -8,14 +8,14 @@ import sys
 import unittest
 import sys
 
+from dns.cache import RecordCache
+from dns.classes import Class
 from dns.resolver import Resolver
+from dns.resource import RecordData, ResourceRecord
+from dns.types import Type
 
 portnr = 5353
 server = "localhost"
-
-
-
-
 
 
 class TestResolver(unittest.TestCase):
@@ -39,6 +39,31 @@ class TestResolver(unittest.TestCase):
         self.assertFalse(addresses)
 
 
+class TestRecordCache(unittest.TestCase):
+    def test_cache_lookup(self):
+        cache = RecordCache(15)
+
+        record_data = RecordData.create(Type.A, "192.168.123.456")
+        rr = ResourceRecord("oppaalstraat.nl", Type.A, Class.IN, 15, record_data)
+        cache.add_record(rr)
+        lookup_val = cache.lookup("oppaalstraat.nl", Type.A, Class.IN)
+        self.assertEqual(rr, lookup_val)
+
+    def test_cache_disk_io(self):
+        cache = RecordCache(15)
+        cache.write_cache_file()  # overwrite the current cache file
+
+        record_data = RecordData.create(Type.A, "192.168.123.456")
+        rr = ResourceRecord("oppaalstraat.nl", Type.A, Class.IN, 15, record_data)
+        cache.add_record(rr)
+        lookup_val = cache.lookup("oppaalstraat.nl", Type.A, Class.IN)
+        self.assertEqual(rr, lookup_val)
+
+        cache.write_cache_file()
+        cache.read_cache_file()
+        lookup_val = cache.lookup("oppaalstraat.nl", Type.A, Class.IN)
+        self.assertEqual(rr, lookup_val)
+
 
 class TestResolverCache(unittest.TestCase):
     @classmethod
@@ -60,6 +85,7 @@ class TestResolverCache(unittest.TestCase):
     def test_wait_for_TTL_expiration(self):
         raise NotImplementedError"""
 
+
 class TestServer(unittest.TestCase):
     pass
 
@@ -67,13 +93,14 @@ class TestServer(unittest.TestCase):
 if __name__ == "__main__":
     # Parse command line arguments
     import argparse
+
     parser = argparse.ArgumentParser(description="HTTP Tests")
     parser.add_argument("-s", "--server", type=str, default="localhost")
     parser.add_argument("-p", "--port", type=int, default=5001)
     args, extra = parser.parse_known_args()
     portnr = args.port
     server = args.server
-    
+
     # Pass the extra arguments to unittest
     sys.argv[1:] = extra
 
