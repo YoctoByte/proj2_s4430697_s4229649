@@ -14,6 +14,10 @@ from dns.classes import Class
 from dns import message
 # from dns.rcodes import RCode
 from dns.types import Type
+import time
+
+
+# todo: implement pending_requests: pending_requests is een lijst met "state blocks" die een tijd, wat parameters en de SLIST bevatten
 
 
 class Resolver(object):
@@ -28,15 +32,16 @@ class Resolver(object):
         """
         self.caching = caching
         self.ttl = ttl
-        self.SLIST = ['8.8.8.8']
+        self.STYPE = Type.A
+        self.SCLASS = Class.IN
+        self.SLIST = []
+        self.SBELT = ['8.8.8.8']  # TODO: slist moet eigenlijk geinitialiseerd worden vanuit een config file
+        if self.caching:
+            self.CACHE = RecordCache(self.ttl)
+        self.pending_requests = []
 
     def gethostbyname(self, hostname, timeout):
         """ Translate a host name to IPv4 address.
-
-        Currently this method contains an example. You will have to replace
-        this example with the algorithm described in section
-        5.3.3 in RFC 1034.
-
         Args:
             hostname (str): the hostname to resolve
 
@@ -44,21 +49,18 @@ class Resolver(object):
             (str, [str], [str]): (hostname, aliaslist, ipaddrlist)
         """
         self.SNAME = hostname
-        self.STYPE = Type.A
-        self.SCLASS = Class.IN
-        self.SLIST = []
-        self.SBELT = ['8.8.8.8']  # TODO: slist moet eigenlijk geinitialiseerd worden vanuit een config file
 
         aliases = []
         addresses = []
 
-        # Step 1 of rfc 1034 sect 5.3.3
+        # Step 1 of rfc 1034 sect 5.3.3:
         if self.caching:
-            self.CACHE = RecordCache(self.ttl)
-            self.CACHE.lookup(hostname, Type.A, Class.IN)
+            answer = self.CACHE.lookup(self.SNAME, Type.A, Class.IN)
+            if answer:
+                return self.SNAME, answer.aliases, answer.addresses
 
         # step 2:
-        self.SLIST = self.find_best_servers()
+        self.update_slist()
 
         # step 3:
         for server in self.SLIST:
@@ -69,9 +71,12 @@ class Resolver(object):
         return hostname, aliases, addresses
 
     # step 2:
-    def find_best_servers(self):
+    def update_slist(self):
         # todo: implement this function
-        return self.SLIST
+        self.SLIST = ['8.8.8.8']
+        # example:
+        # if SNAME is Mockapetris.ISI.EDU, first look for a NS RRs
+        # for Mockapetris.ISI.EDU, then ISI.EDU, then EDU and then . (root)
 
     # step 3:
     def send_query(self, server_address, hostname, timeout):
@@ -96,19 +101,19 @@ class Resolver(object):
     # step 4:
     def analyze_response(self, response):
         # Get data
-        aliases = list()
+        aliases = []
         for additional in response.additionals:
             if additional.type_ == Type.CNAME:
                 aliases.append(additional.rdata.data)
-        addresses = list()
+        addresses = []
         for answer in response.answers:
             if answer.type_ == Type.A:
                 addresses.append(answer.rdata.data)
 
-        # a. if response answers question or contains name error: chache data and return back to client
+        # a. if response answers question or contains name error: cache data and return back to client
 
-        # b.
+        # b. if response contains better delegation to other servers: cache delegation and go to step 2
 
-        # c.
+        # c. if response shows a CNAME that is not the answer: cache CNAME, change SNAME to CNAME in CNAME RR and go to step 1
 
-        # d.
+        # d. if responde shows server failure or other bizarre contents, delete server from SLIST and go to step 3
