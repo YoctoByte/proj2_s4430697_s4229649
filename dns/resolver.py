@@ -14,7 +14,7 @@ from dns.classes import Class
 from dns import message
 # from dns.rcodes import RCode
 from dns.types import Type
-import time
+# import time
 
 
 # todo: implement pending_requests: pending_requests is een lijst met "state blocks" die een tijd, wat parameters en de SLIST bevatten
@@ -63,12 +63,24 @@ class Resolver(object):
         self.update_slist()
 
         # step 3:
-        for server in self.SLIST:
+        for server in list(self.SLIST):  # make a copy of SLIST
             response = self.send_query(server, hostname, timeout)
             # step 4:
-            self.analyze_response(response)
+            for answer in response.answers:
+                if answer.type_ == Type.A:
+                    addresses.append(answer.rdata.data)
+            for additional in response.additionals:
+                if additional.type_ == Type.CNAME:
+                    aliases.append(additional.rdata.data)
+            for authority in response.authorities:
+                if authority.type_ == Type.NS:
+                    authority_data = authority.rdata.data
+                    if is_ip_address(authority_data):
+                        pass
+                    else:
+                        pass
 
-        return hostname, aliases, addresses
+        return self.SNAME, aliases, addresses
 
     # step 2:
     def update_slist(self):
@@ -98,22 +110,5 @@ class Resolver(object):
 
         return response
 
-    # step 4:
-    def analyze_response(self, response):
-        # Get data
-        aliases = []
-        for additional in response.additionals:
-            if additional.type_ == Type.CNAME:
-                aliases.append(additional.rdata.data)
-        addresses = []
-        for answer in response.answers:
-            if answer.type_ == Type.A:
-                addresses.append(answer.rdata.data)
-
-        # a. if response answers question or contains name error: cache data and return back to client
-
-        # b. if response contains better delegation to other servers: cache delegation and go to step 2
-
-        # c. if response shows a CNAME that is not the answer: cache CNAME, change SNAME to CNAME in CNAME RR and go to step 1
-
-        # d. if responde shows server failure or other bizarre contents, delete server from SLIST and go to step 3
+def is_ip_address(string):
+    return not any(ch.isalpha() for ch in string)
