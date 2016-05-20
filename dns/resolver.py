@@ -42,7 +42,7 @@ class Resolver(object):
         self.pending_requests = []
         self.aliases = []
         self.addresses = []
-        self.timeout = 10
+        self.timeout = 3
 
     def gethostbyname(self, hostname):
         """ Translate a host name to IPv4 address.
@@ -74,7 +74,7 @@ class Resolver(object):
     # step 2:
     def update_slist(self):
         # todo: implement this function
-        self.SLIST = ['198.41.0.4']
+        self.SLIST = ['198.41.0.4']  # 198.41.0.4
         # example:
         # if SNAME is Mockapetris.ISI.EDU, first look for a NS RRs
         # for Mockapetris.ISI.EDU, then ISI.EDU, then EDU and then . (root)
@@ -86,7 +86,7 @@ class Resolver(object):
 
         # Create and send query
         question = message.Question(self.SNAME, Type.A, Class.IN)
-        header = message.Header(9001, 0, 1, 0, 0, 0)
+        header = message.Header(9002, 0, 1, 0, 0, 0)
         header.qr = 0
         header.opcode = 0
         header.rd = 1
@@ -158,5 +158,5 @@ class Resolver(object):
                 additional.class_], additional.name, additional.ttl
 
 
-resolver = Resolver(False, 10)
-resolver.gethostbyname('ns1.zxcs.nl')
+resolver = Resolver(False, 3600)
+resolver.gethostbyname('www.opaalstraat.nl')
