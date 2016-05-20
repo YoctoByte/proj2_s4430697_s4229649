@@ -47,7 +47,7 @@ def gethostbyname(hostname, timeout):
         print 'answer:', answer.rdata.data, Type.by_value[answer.type_], Class.by_value[answer.class_], answer.name, answer.ttl
 
     for authority in response.authorities:
-        print 'authority:', authority.rdata, Type.by_value[authority.type_], Class.by_value[authority.class_], authority.name, authority.ttl
+        print 'authority:', authority.rdata.data, Type.by_value[authority.type_], Class.by_value[authority.class_], authority.name, authority.ttl
 
     aliases = list()
     for additional in response.additionals:
