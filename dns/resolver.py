@@ -157,6 +157,7 @@ class Resolver(object):
             print 'additional:', additional.rdata.data, Type.by_value[additional.type_], Class.by_value[
                 additional.class_], additional.name, additional.ttl
 
-
-resolver = Resolver(False, 3600)
-resolver.gethostbyname('www.opaalstraat.nl')
+if __name__ == "__main__": # anders wordt onderstaande gerunt op het moment dat deze klasse
+    # wordt geimporteerd
+    resolver = Resolver(False, 3600)
+    resolver.gethostbyname('www.opaalstraat.nl')
