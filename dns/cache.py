@@ -60,6 +60,7 @@ class RecordCache(object):
         Args:
             ttl (int): TTL of cached entries (if > 0)
         """
+        self.record_time_stored_dict = {}
         self.records = []
         self.ttl = ttl
 
@@ -78,10 +79,12 @@ class RecordCache(object):
 
         for record in self.records:
             if dname == record.name and type_ == record.type_ and class_ == record.class_:
-                if record.time_stored + record.ttl > time.time():
+                if self.record_time_stored_dict[record] + record.ttl > time.time():
                     matches.append(record)
+                    # TODO: moet de time_stored hier aangepast worden?
                 else:
                     self.records.remove(record)
+                    del self.record_time_stored_dict[record]
 
         return matches
 
@@ -98,31 +101,32 @@ class RecordCache(object):
         elif not (record.type_ == Type.A or record.type_ == Type.CNAME):
             raise CacheException('Only A and CNAME-Resource Records may be cached, actual type is ' + Type.to_string(record.type_))  # see assignment
 
-        # record.time_stored = time.time()
-        # print record.time_stored
-        self.records.append((record, time.time()))
+        self.record_time_stored_dict[record] = time.time()
+        self.records.append(record)
 
     def read_cache_file(self):
         """ Read the cache file from disk """
         with open(self.cache_dir, 'r') as file:
             json_records = file.read()
             self.records = json.loads(json_records, object_hook=ResourceEncoder.resource_from_json)
-        self.time_stored = dict(self.records)
-        for
+
+        for record in self.records:
+            self.record_time_stored_dict[record] = time.time()
 
 
     def write_cache_file(self):
         """ Write the cache file to disk """
         for record in self.records:
-            if record.time_stored + record.ttl < time.time():
+            if self.record_time_stored_dict[record] + record.ttl < time.time():
                 self.records.remove(record)
+                del self.record_time_stored_dict[record]
         with open(self.cache_dir, 'w') as file:
             json_records = json.dumps(self.records, cls=ResourceEncoder, indent=4)
             file.write(json_records)
 
 
-class MockupCache:
-    """ Mockup cache that does nothing"""
+class MockedCache:
+    """ Mockup cache that does nothing """
     def __init__(self, ttl):
         pass
 

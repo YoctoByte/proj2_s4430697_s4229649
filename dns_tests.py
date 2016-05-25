@@ -45,38 +45,49 @@ class TestRecordCache(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         record_data = RecordData.create(Type.A, "192.168.123.456")
-        cls.rr = ResourceRecord("oppaalstraat.nl", Type.A, Class.IN, 15, record_data)
+        cls.ttl = 3
+        cls.rr = ResourceRecord("wiki.nl", Type.A, Class.IN, cls.ttl, record_data)
+
+    def setUp(self):
+        RecordCache(15).write_cache_file()  # overwrite the current cache file
 
     def test_cache_lookup(self):
-        cache = RecordCache(15)
-
+        """
+        Add a record to the cache and look it up
+        """
+        cache = RecordCache(self.ttl)
         cache.add_record(self.rr)
-        lookup_vals = cache.lookup("oppaalstraat.nl", Type.A, Class.IN)
+        lookup_vals = cache.lookup("wiki.nl", Type.A, Class.IN)
+        self.assertEqual(len(lookup_vals), 1)
         self.assertEqual(self.rr, lookup_vals[0])
 
     def test_cache_disk_io(self):
-        cache = RecordCache(15)
-        cache.write_cache_file()  # overwrite the current cache file
-
+        """
+        Add a record to the cache, write to disk, read from disk, do a lookup
+        """
+        cache = RecordCache(self.ttl)
         # add rr to cache and write to disk
         cache.add_record(self.rr)
         cache.write_cache_file()
 
         # read from disk again
-        new_cache = RecordCache(15)
+        new_cache = RecordCache(self.ttl)
         new_cache.read_cache_file()
-        lookup_vals = new_cache.lookup("oppaalstraat.nl", Type.A, Class.IN)
+        lookup_vals = new_cache.lookup("wiki.nl", Type.A, Class.IN)
+        self.assertEqual(len(lookup_vals), 1)
         self.assertEqual(self.rr, lookup_vals[0])
 
     def test_timeout(self):
-        cache = RecordCache(15)
+        """
+        cache a record, wait till ttl expires, see if record is removed from cache
+        """
+        cache = RecordCache(self.ttl)
         cache.add_record(self.rr)
 
-        time.sleep(15)
+        time.sleep(self.ttl)
 
-        lookup_vals = cache.lookup("oppaalstraat.nl", Type.A, Class.IN)
+        lookup_vals = cache.lookup("wiki.nl", Type.A, Class.IN)
         self.assertFalse(lookup_vals)
-    pass
 
 
 class TestResolverCache(unittest.TestCase):

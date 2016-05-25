@@ -49,6 +49,16 @@ class ResourceRecord(object):
         offset += rdlength
         return cls(name, type_, class_, ttl, rdata), offset
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.name == other.name\
+                   and self.type_ == other.type_\
+                   and self.class_ == other.class_\
+                   and self.ttl == other.ttl\
+                   and self.rdata.data == other.rdata.data
+        else:
+            return False
+
 
 class RecordData(object):
     """ Record Data """
