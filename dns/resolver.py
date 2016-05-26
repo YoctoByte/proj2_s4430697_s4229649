@@ -35,9 +35,9 @@ class Resolver(object):
         self.ttl = ttl
         self.caching = caching
         if self.caching:
-            self.CACHE = RecordCache()
+            self.CACHE = RecordCache(15)
         else:
-            self.CACHE = MockedCache()
+            self.CACHE = MockedCache(15)
         self.STYPE = Type.A
         self.SCLASS = Class.IN
         self.SLIST = [(None, '8.8.8.8'), (None, '198.41.0.4')]

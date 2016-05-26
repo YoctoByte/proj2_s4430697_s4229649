@@ -54,10 +54,13 @@ class RecordCache(object):
     """ Cache for ResourceRecords """
     cache_dir = "cache\cache.txt"
 
-    def __init__(self):
+    def __init__(self,ttl):
+        """ Initialize the RecordCache
+
+        Args:
+            ttl (int): TTL of cached entries (if > 0)
         """
-        Initialize the RecordCache
-        """
+        self.ttl = ttl
         self.record_time_stored_dict = {}
 
     def lookup(self, dname, type_, class_):
@@ -120,7 +123,7 @@ class RecordCache(object):
 
 class MockedCache:
     """ Mockup cache that does nothing """
-    def __init__(self):
+    def __init__(self, ttl):
         pass
 
     def lookup(self, dname, type_, class_):

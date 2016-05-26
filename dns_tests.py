@@ -49,13 +49,13 @@ class TestRecordCache(unittest.TestCase):
         cls.rr = ResourceRecord("wiki.nl", Type.A, Class.IN, cls.ttl, record_data)
 
     def setUp(self):
-        RecordCache().write_cache_file()  # overwrite the current cache file
+        RecordCache(15).write_cache_file()  # overwrite the current cache file
 
     def test_cache_lookup(self):
         """
         Add a record to the cache and look it up
         """
-        cache = RecordCache()
+        cache = RecordCache(15)
         cache.add_record(self.rr)
         lookup_vals = cache.lookup("wiki.nl", Type.A, Class.IN)
         self.assertEqual(len(lookup_vals), 1)
@@ -65,13 +65,13 @@ class TestRecordCache(unittest.TestCase):
         """
         Add a record to the cache, write to disk, read from disk, do a lookup
         """
-        cache = RecordCache()
+        cache = RecordCache(15)
         # add rr to cache and write to disk
         cache.add_record(self.rr)
         cache.write_cache_file()
 
         # read from disk again
-        new_cache = RecordCache()
+        new_cache = RecordCache(15)
         new_cache.read_cache_file()
         lookup_vals = new_cache.lookup("wiki.nl", Type.A, Class.IN)
         self.assertEqual(len(lookup_vals), 1)
@@ -81,7 +81,7 @@ class TestRecordCache(unittest.TestCase):
         """
         cache a record, wait till ttl expires, see if record is removed from cache
         """
-        cache = RecordCache()
+        cache = RecordCache(15)
         cache.add_record(self.rr)
 
         time.sleep(self.ttl)
