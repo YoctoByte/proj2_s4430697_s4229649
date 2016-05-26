@@ -1,9 +1,6 @@
 #!/usr/bin/env python2
 
 """ Tests for your DNS resolver and server """
-import unittest
-
-import sys
 
 import unittest
 import sys
@@ -28,14 +25,14 @@ class TestResolver(unittest.TestCase):
     def test_solve_FQDN(self):
         umass_FQDN = 'gaia.cs.umass.edu'
         umass_IP = '128.119.245.12'
-        hostname, aliases, addresses = self.resolver.gethostbyname(umass_FQDN, 15)
+        hostname, aliases, addresses = self.resolver.gethostbyname(umass_FQDN)
         self.assertEqual(hostname, umass_FQDN)
         self.assertFalse(aliases)
         self.assertEqual(addresses, [umass_IP])
 
     def test_invalid_FQDN(self):
         invalid_FQDN = 'wuiefhiwhao.rerttd.nl'
-        hostname, aliases, addresses = self.resolver.gethostbyname(invalid_FQDN, 15)
+        hostname, aliases, addresses = self.resolver.gethostbyname(invalid_FQDN)
         self.assertEqual(hostname, invalid_FQDN)
         self.assertFalse(aliases)
         self.assertFalse(addresses)
@@ -58,8 +55,7 @@ class TestRecordCache(unittest.TestCase):
         cache = RecordCache(15)
         cache.add_record(self.rr)
         lookup_vals = cache.lookup("wiki.nl", Type.A, Class.IN)
-        self.assertEqual(len(lookup_vals), 1)
-        self.assertEqual(self.rr, lookup_vals[0])
+        self.assertEqual([self.rr], lookup_vals)
 
     def test_cache_disk_io(self):
         """
@@ -74,10 +70,9 @@ class TestRecordCache(unittest.TestCase):
         new_cache = RecordCache(15)
         new_cache.read_cache_file()
         lookup_vals = new_cache.lookup("wiki.nl", Type.A, Class.IN)
-        self.assertEqual(len(lookup_vals), 1)
-        self.assertEqual(self.rr, lookup_vals[0])
+        self.assertEqual([self.rr], lookup_vals)
 
-    def test_timeout(self):
+    def test_TTL_expiration(self):
         """
         cache a record, wait till ttl expires, see if record is removed from cache
         """
@@ -95,19 +90,35 @@ class TestResolverCache(unittest.TestCase):
     def setUpClass(cls):
         cls.resolver = Resolver(True, 10)
 
+    def setUp(self):
+        # put invalid record in cache file
+        record_data = RecordData.create(Type.A, "192.168.123.456")
+        self.rr = ResourceRecord("invalid.invalid", Type.A, Class.IN, 3, record_data)
+
+        cache = RecordCache(15)
+        cache.add_record(self.rr)
+        cache.write_cache_file()
+
     def test_solve_FQDN(self):
         umass_FQDN = 'gaia.cs.umass.edu'
         umass_IP = '128.119.245.12'
-        hostname, aliases, addresses = self.resolver.gethostbyname(umass_FQDN, 15)
+        hostname, aliases, addresses = self.resolver.gethostbyname(umass_FQDN)
         self.assertEqual(hostname, umass_FQDN)
         self.assertFalse(aliases)
         self.assertEqual(addresses, [umass_IP])
 
     def test_invalid_cached_FQDN(self):
-        raise NotImplementedError
+        hostname, aliases, addresses = self.resolver.gethostbyname(self.rr.name)
+        self.assertEqual(hostname, self.rr.name)
+        self.assertFalse(aliases)
+        self.assertEqual(addresses, self.rr.rdata.data)
 
     def test_wait_for_TTL_expiration(self):
-        raise NotImplementedError
+        time.sleep(self.rr.ttl)
+        hostname, aliases, addresses = self.resolver.gethostbyname(self.rr.name)
+        self.assertEqual(hostname, self.rr.name)
+        self.assertFalse(aliases)
+        self.assertFalse(addresses)
 
 
 class TestServer(unittest.TestCase):
