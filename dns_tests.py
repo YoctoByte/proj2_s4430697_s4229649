@@ -44,18 +44,18 @@ class TestResolver(unittest.TestCase):
 class TestRecordCache(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        record_data = RecordData.create(Type.A, "192.168.123.456")
         cls.ttl = 3
+        record_data = RecordData.create(Type.A, "192.168.123.456")
         cls.rr = ResourceRecord("wiki.nl", Type.A, Class.IN, cls.ttl, record_data)
 
     def setUp(self):
-        RecordCache(15).write_cache_file()  # overwrite the current cache file
+        RecordCache().write_cache_file()  # overwrite the current cache file
 
     def test_cache_lookup(self):
         """
         Add a record to the cache and look it up
         """
-        cache = RecordCache(self.ttl)
+        cache = RecordCache()
         cache.add_record(self.rr)
         lookup_vals = cache.lookup("wiki.nl", Type.A, Class.IN)
         self.assertEqual(len(lookup_vals), 1)
@@ -65,13 +65,13 @@ class TestRecordCache(unittest.TestCase):
         """
         Add a record to the cache, write to disk, read from disk, do a lookup
         """
-        cache = RecordCache(self.ttl)
+        cache = RecordCache()
         # add rr to cache and write to disk
         cache.add_record(self.rr)
         cache.write_cache_file()
 
         # read from disk again
-        new_cache = RecordCache(self.ttl)
+        new_cache = RecordCache()
         new_cache.read_cache_file()
         lookup_vals = new_cache.lookup("wiki.nl", Type.A, Class.IN)
         self.assertEqual(len(lookup_vals), 1)
@@ -81,7 +81,7 @@ class TestRecordCache(unittest.TestCase):
         """
         cache a record, wait till ttl expires, see if record is removed from cache
         """
-        cache = RecordCache(self.ttl)
+        cache = RecordCache()
         cache.add_record(self.rr)
 
         time.sleep(self.ttl)
