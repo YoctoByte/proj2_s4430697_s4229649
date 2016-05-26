@@ -54,7 +54,7 @@ class RecordCache(object):
     """ Cache for ResourceRecords """
     cache_dir = "cache\cache.txt"
 
-    def __init__(self,ttl):
+    def __init__(self, ttl):
         """ Initialize the RecordCache
 
         Args:
@@ -109,7 +109,6 @@ class RecordCache(object):
 
         for record in records:
             self.record_time_stored_dict[record] = time.time()
-
 
     def write_cache_file(self):
         """ Write the cache file to disk """
