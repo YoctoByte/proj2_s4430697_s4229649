@@ -52,7 +52,7 @@ class ResourceEncoder(json.JSONEncoder):
 
 class RecordCache(object):
     """ Cache for ResourceRecords """
-    cache_dir = "cache\cache.txt"
+    cache_dir = 'cache.json'
 
     def __init__(self, ttl):
         """ Initialize the RecordCache
@@ -96,8 +96,8 @@ class RecordCache(object):
             raise CacheException('RRs with a ttl of 0 may not be cached')  # see rfc 1035 p.11
         elif record.ttl < 0:
             raise CacheException('ttl smaller than 0')
-        elif not (record.type_ == Type.A or record.type_ == Type.CNAME):
-            raise CacheException('Only A and CNAME-Resource Records may be cached, actual type is ' + Type.to_string(record.type_))  # see assignment
+        elif record.type_ not in [Type.A, Type.CNAME, Type.NS]:
+            raise CacheException('Only A, CNAME and NS-Resource Records may be cached, actual type is ' + Type.to_string(record.type_))  # see assignment
 
         self.record_time_stored_dict[record] = time.time()
 
@@ -106,6 +106,7 @@ class RecordCache(object):
         with open(self.cache_dir, 'r') as file:
             json_records = file.read()
             records = json.loads(json_records, object_hook=ResourceEncoder.resource_from_json)
+            file.close()
 
         for record in records:
             self.record_time_stored_dict[record] = time.time()
@@ -118,6 +119,7 @@ class RecordCache(object):
         with open(self.cache_dir, 'w') as file:
             json_records = json.dumps(self.record_time_stored_dict.keys(), cls=ResourceEncoder, indent=4)
             file.write(json_records)
+            file.close()
 
 
 class MockedCache:

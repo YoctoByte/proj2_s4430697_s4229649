@@ -10,7 +10,7 @@ DNS server, but with a different list of servers.
 import socket
 from threading import Thread
 # from Queue import Queue
-from dns.cache import RecordCache, MockedCache
+from dns.cache import RecordCache, MockedCache, CacheException
 from dns.classes import Class
 from dns import message
 # from dns.rcodes import RCode
@@ -72,17 +72,23 @@ class Resolver(object):
         self.SNAME = hostname
         if slist:
             self.SLIST = slist
+        else:
+            self.CACHE.read_cache_file()
 
         # Step 1 of rfc 1034 sect 5.3.3:
-        answer = self.CACHE.lookup(self.SNAME, Type.A, Class.IN)
-        if answer:
-            return self.SNAME, answer.aliases, answer.addresses
+        answers = self.CACHE.lookup(self.SNAME, Type.A, Class.IN)
+        if answers:
+            return self.SNAME, answers, []
 
         # step 2:
         self.update_slist()
 
         # step 3 + 4:
         self.send_queries()
+
+        if slist is None:
+            print('test')
+            self.CACHE.write_cache_file()
 
         return self.SNAME, self.aliases, self.addresses
 
@@ -99,7 +105,7 @@ class Resolver(object):
     def send_queries(self):
         # Create query
         question = message.Question(self.SNAME, Type.A, Class.IN)
-        header = message.Header(9001, 0, 1, 0, 0, 0)
+        header = message.Header(42, 0, 1, 0, 0, 0)
         header.qr = 0
         header.opcode = 0
         header.rd = 1
@@ -127,8 +133,10 @@ class Resolver(object):
             try_count = 0
             max_tries = 3
             while try_count < max_tries:
-                print(server_ip)
-                sock.sendto(query_bytes, (server_ip, 53))
+                try:
+                    sock.sendto(query_bytes, (server_ip, 53))
+                except:
+                    print('ERROR: ' + str(server_ip))
                 try:
                     results[ind] = {'data': sock.recv(512), 'server': server_data}
                     return
@@ -163,21 +171,21 @@ class Resolver(object):
 
     # step 4:
     def analyze_response(self, response, server_data):
-        # todo: rr is overbodig volgens mij. response bevat al rrs
         additionals = list()
-        for additional in response.additionals:
-            rr = ResourceRecord(additional.name, additional.type_, additional.class_, additional.ttl, additional.rdata)
-            self.CACHE.add_record(rr)
-            additionals.append(rr)
+        for additional_rr in response.additionals:
+            try:
+                self.CACHE.add_record(additional_rr)
+                additionals.append(additional_rr)
+            except CacheException:
+                pass
 
-        for answer in response.answers:
-            rr = ResourceRecord(answer.name, answer.type_, answer.class_, answer.ttl, answer.rdata)
-            if rr.type_ == Type.A:
-                print('answer: ' + rr.name + ', ' + rr.rdata.data)
-                self.CACHE.add_record(rr)
-                self.addresses.append(rr.rdata.data)
-            if rr.type_ == Type.CNAME:
-                new_sname = rr.rdata.data
+        for answer_rr in response.answers:
+            if answer_rr.type_ == Type.A:
+                print('answer: ' + answer_rr.name + ', ' + answer_rr.rdata.data)
+                self.CACHE.add_record(answer_rr)
+                self.addresses.append(answer_rr.rdata.data)
+            if answer_rr.type_ == Type.CNAME:
+                new_sname = answer_rr.rdata.data
                 try:
                     cname_resolver = Resolver(self.caching, self.ttl, self.CACHE)
                     self.SNAME, self.aliases, self.addresses = cname_resolver.gethostbyname(new_sname)
@@ -192,10 +200,13 @@ class Resolver(object):
         for authority in response.authorities:
             rr = ResourceRecord(authority.name, authority.type_, authority.class_, authority.ttl, authority.rdata)
             if rr.type_ == Type.NS:
+                ip = None
                 for additional in additionals:
                     if additional.name == rr.rdata.data and additional.type_ == Type.A:
-                        # todo: and better delegation
-                        new_slist.append((rr.rdata.data, additional.rdata.data))
+                        ip = additional.rdata.data
+                # todo: if better delegation:
+                if ip:
+                    new_slist.append((rr.rdata.data, ip))
             if rr.type_ == Type.A and rr.class_ == Class.IN:
                 print('authority contained an A type record!')
             if rr.type_ == Type.CNAME:
@@ -229,5 +240,8 @@ class ResolverException(Exception):
 
 
 if __name__ == "__main__":  # anders wordt onderstaande gerunt op het moment dat deze klasse wordt geimporteerd
-    resolver = Resolver(False, 3600)
-    resolver.gethostbyname('www.google.com')
+    resolver = Resolver(True, 3600)
+    _, ips, als = resolver.gethostbyname('www.google.com')
+    print('IP Address resolved: ' + str(ips[0].rdata.data))
+    for alias in als:
+        print('Aliases resolved: ' + str(alias[0].rdata.data))
