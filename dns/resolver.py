@@ -242,6 +242,7 @@ class ResolverException(Exception):
 if __name__ == "__main__":  # anders wordt onderstaande gerunt op het moment dat deze klasse wordt geimporteerd
     resolver = Resolver(True, 3600)
     _, ips, als = resolver.gethostbyname('www.google.com')
-    print('IP Address resolved: ' + str(ips[0].rdata.data))
+    for ip in ips:
+        print('IP Address resolved: ' + str(ip.rdata.data))
     for alias in als:
-        print('Aliases resolved: ' + str(alias[0].rdata.data))
+        print('Aliases resolved: ' + alias)
