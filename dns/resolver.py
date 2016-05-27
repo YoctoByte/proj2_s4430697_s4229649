@@ -74,32 +74,50 @@ class Resolver(object):
             self.SLIST = slist
         else:
             self.CACHE.read_cache_file()
+        self.CACHE.write_cache_file()
+        # todo: look for cname in cache
 
         # Step 1 of rfc 1034 sect 5.3.3:
-        answers = self.CACHE.lookup(self.SNAME, Type.A, Class.IN)
-        if answers:
+        answer_rrs = self.CACHE.lookup(self.SNAME, Type.A, Class.IN)
+        if answer_rrs:
+            answers = []
+            for answer__rr in answer_rrs:
+                answers.append(answer__rr.rdata.data)
             return self.SNAME, answers, []
 
         # step 2:
-        self.update_slist()
+        self.read_cache()
 
         # step 3 + 4:
         self.send_queries()
 
-        if slist is None:
-            print('test')
-            self.CACHE.write_cache_file()
+        self.CACHE.write_cache_file()
 
-        return self.SNAME, self.aliases, self.addresses
+        return self.SNAME, self.addresses, self.aliases
 
     # step 2:
-    def update_slist(self):
-        # todo: implement this function
+    def read_cache(self):
+        dname_to_find = self.SNAME
+        ns_rrs = []
+        while True:
+            ns_rrs = self.CACHE.lookup(dname_to_find, Type.NS, Class.IN)
+            if ns_rrs:
+                break
+            try:
+                dname_to_find = dname_to_find.split('.', 1)[1]
+            except IndexError:
+                break
+
+        for ns_rr in ns_rrs:
+            try:
+                a_rr = self.CACHE.lookup(ns_rr.rdata.data, Type.A, Class.IN)[0]
+                ns_ip = a_rr.rdata.data
+            except IndexError:
+                ns_ip = None
+            self.SLIST.append((ns_rr.rdata.data, ns_ip))
+
         if not self.SLIST:
             self.SLIST = self.SBELT
-        # example:
-        # if SNAME is Mockapetris.ISI.EDU, first look for a NS RRs
-        # for Mockapetris.ISI.EDU, then ISI.EDU, then EDU and then . (root)
 
     # step 3:
     def send_queries(self):
@@ -136,7 +154,7 @@ class Resolver(object):
                 try:
                     sock.sendto(query_bytes, (server_ip, 53))
                 except:
-                    print('ERROR: ' + str(server_ip))
+                    print('Unable to send to: ' + str(server_ip))
                 try:
                     results[ind] = {'data': sock.recv(512), 'server': server_data}
                     return
@@ -185,10 +203,11 @@ class Resolver(object):
                 self.CACHE.add_record(answer_rr)
                 self.addresses.append(answer_rr.rdata.data)
             if answer_rr.type_ == Type.CNAME:
+                self.CACHE.add_record(answer_rr)
                 new_sname = answer_rr.rdata.data
                 try:
                     cname_resolver = Resolver(self.caching, self.ttl, self.CACHE)
-                    self.SNAME, self.aliases, self.addresses = cname_resolver.gethostbyname(new_sname)
+                    self.SNAME, self.addresses, self.aliases = cname_resolver.gethostbyname(new_sname)
                 except ResolverException:
                     pass
                 return
@@ -200,6 +219,7 @@ class Resolver(object):
         for authority in response.authorities:
             rr = ResourceRecord(authority.name, authority.type_, authority.class_, authority.ttl, authority.rdata)
             if rr.type_ == Type.NS:
+                self.CACHE.add_record(rr)
                 ip = None
                 for additional in additionals:
                     if additional.name == rr.rdata.data and additional.type_ == Type.A:
@@ -214,7 +234,7 @@ class Resolver(object):
         if new_slist:
             try:
                 next_resolver = Resolver(self.caching, self.ttl, self.CACHE)
-                self.SNAME, self.aliases, self.addresses = next_resolver.gethostbyname(self.SNAME, new_slist)
+                self.SNAME, self.addresses, self.aliases = next_resolver.gethostbyname(self.SNAME, new_slist)
             except ResolverException:
                 pass
         else:
@@ -241,8 +261,8 @@ class ResolverException(Exception):
 
 if __name__ == "__main__":  # anders wordt onderstaande gerunt op het moment dat deze klasse wordt geimporteerd
     resolver = Resolver(True, 3600)
-    _, ips, als = resolver.gethostbyname('www.google.com')
+    _, ips, als = resolver.gethostbyname('www.nu.nl')
     for ip in ips:
-        print('IP Address resolved: ' + str(ip.rdata.data))
+        print('IP Address resolved: ' + ip)
     for alias in als:
         print('Aliases resolved: ' + alias)
