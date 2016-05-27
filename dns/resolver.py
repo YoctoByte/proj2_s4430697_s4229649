@@ -75,7 +75,13 @@ class Resolver(object):
         else:
             self.CACHE.read_cache_file()
         self.CACHE.write_cache_file()
-        # todo: look for cname in cache
+
+        while True:
+            try:
+                cname_rr = self.CACHE.lookup(self.SNAME, Type.CNAME, Class.IN)[0]
+                self.SNAME = cname_rr.rdata.data
+            except IndexError:
+                break
 
         # Step 1 of rfc 1034 sect 5.3.3:
         answer_rrs = self.CACHE.lookup(self.SNAME, Type.A, Class.IN)
@@ -261,7 +267,7 @@ class ResolverException(Exception):
 
 if __name__ == "__main__":  # anders wordt onderstaande gerunt op het moment dat deze klasse wordt geimporteerd
     resolver = Resolver(True, 3600)
-    _, ips, als = resolver.gethostbyname('www.nu.nl')
+    _, ips, als = resolver.gethostbyname('www.youtube.com')
     for ip in ips:
         print('IP Address resolved: ' + ip)
     for alias in als:

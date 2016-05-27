@@ -100,6 +100,9 @@ class RecordCache(object):
         elif record.type_ not in [Type.A, Type.CNAME, Type.NS]:
             raise CacheException('Only A, CNAME and NS-Resource Records may be cached, actual type is ' + Type.to_string(record.type_))
 
+        for r in set(self.records):
+            if r.name == record.name and r.rdata.data == record.rdata.data:
+                self.records.remove(r)
         self.records.add(record)
 
     def read_cache_file(self):
