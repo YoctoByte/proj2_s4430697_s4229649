@@ -143,13 +143,17 @@ class Resolver(object):
             sock.settimeout(self.timeout)
             if not server_ip:
                 if server_name:
-                    ns_resolver = Resolver(self.caching, self.ttl, self.CACHE)
-                    _, addresses, _ = ns_resolver.gethostbyname(server_name)
-                    if addresses:
-                        server_ip = addresses[0]
-                    else:
-                        results[ind] = -1
-                        return
+                    try:
+                        a_rr = self.CACHE.lookup(server_name, Type.A, Class.IN)[0]
+                        server_ip = a_rr.rdata.data
+                    except IndexError:
+                        ns_resolver = Resolver(self.caching, self.ttl, self.CACHE)
+                        _, addresses, _ = ns_resolver.gethostbyname(server_name)
+                        if addresses:
+                            server_ip = addresses[0]
+                        else:
+                            results[ind] = -1
+                            return
                 else:
                     results[ind] = -1
                     return
@@ -205,7 +209,6 @@ class Resolver(object):
 
         for answer_rr in response.answers:
             if answer_rr.type_ == Type.A:
-                print('answer: ' + answer_rr.name + ', ' + answer_rr.rdata.data)
                 self.CACHE.add_record(answer_rr)
                 self.addresses.append(answer_rr.rdata.data)
             if answer_rr.type_ == Type.CNAME:
@@ -231,8 +234,7 @@ class Resolver(object):
                     if additional.name == rr.rdata.data and additional.type_ == Type.A:
                         ip = additional.rdata.data
                 # todo: if better delegation:
-                if ip:
-                    new_slist.append((rr.rdata.data, ip))
+                new_slist.append((rr.rdata.data, ip))
             if rr.type_ == Type.A and rr.class_ == Class.IN:
                 print('authority contained an A type record!')
             if rr.type_ == Type.CNAME:
@@ -243,8 +245,6 @@ class Resolver(object):
                 self.SNAME, self.addresses, self.aliases = next_resolver.gethostbyname(self.SNAME, new_slist)
             except ResolverException:
                 pass
-        else:
-            return
 
     @staticmethod
     def show_response(response):
@@ -267,7 +267,7 @@ class ResolverException(Exception):
 
 if __name__ == "__main__":  # anders wordt onderstaande gerunt op het moment dat deze klasse wordt geimporteerd
     resolver = Resolver(True, 3600)
-    _, ips, als = resolver.gethostbyname('www.youtube.com')
+    _, ips, als = resolver.gethostbyname('www.tweakers.net')
     for ip in ips:
         print('IP Address resolved: ' + ip)
     for alias in als:
