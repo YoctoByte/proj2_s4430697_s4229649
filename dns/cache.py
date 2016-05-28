@@ -48,8 +48,8 @@ class ResourceEncoder(json.JSONEncoder):
         class_ = Class.from_string(dct["class"])
         ttl = dct["ttl"]
         rdata = RecordData.create(type_, dct["rdata"])
-        time = dct["time"]
-        return ResourceRecord(name, type_, class_, ttl, rdata, time)
+        t = dct["time"]
+        return ResourceRecord(name, type_, class_, ttl, rdata, t)
 
 
 class RecordCache(object):
@@ -63,7 +63,7 @@ class RecordCache(object):
             ttl (int): TTL of cached entries (if > 0)
         """
         self.ttl = ttl
-        self.record_list = list()
+        self.records = set()
 
     def lookup(self, dname, type_, class_):
         """ Lookup resource records in cache
@@ -78,13 +78,12 @@ class RecordCache(object):
         """
         matches = []
 
-        for i, record in enumerate(list(self.record_list)):
+        for record in set(self.records):
             if dname == record.name and type_ == record.type_ and class_ == record.class_:
                 if record.time + record.ttl > time.time():
                     matches.append(record)
-                    # TODO: moet de time_stored hier aangepast worden?
                 else:
-                    del self.record_list[i]
+                    self.records.remove(record)
 
         return matches
 
@@ -99,24 +98,27 @@ class RecordCache(object):
         elif record.ttl < 0:
             raise CacheException('ttl smaller than 0')
         elif record.type_ not in [Type.A, Type.CNAME, Type.NS]:
-            raise CacheException('Only A, CNAME and NS-Resource Records may be cached, actual type is ' + Type.to_string(record.type_))  # see assignment
+            raise CacheException('Only A, CNAME and NS-Resource Records may be cached, actual type is ' + Type.to_string(record.type_))
 
-        self.record_list.append(record)
+        for r in set(self.records):
+            if r.name == record.name and r.rdata.data == record.rdata.data:
+                self.records.remove(r)
+        self.records.add(record)
 
     def read_cache_file(self):
         """ Read the cache file from disk """
         with open(self.cache_dir, 'r') as cache_file:
             json_records = cache_file.read()
-            self.record_list = json.loads(json_records, object_hook=ResourceEncoder.resource_from_json)
+            self.records = set(json.loads(json_records, object_hook=ResourceEncoder.resource_from_json))
             cache_file.close()
 
     def write_cache_file(self):
         """ Write the cache file to disk """
-        for i, record in enumerate(list(self.record_list)):
+        for record in set(self.records):
             if record.time + record.ttl < time.time():
-                del self.record_list[i]
+                self.records.remove(record)
         with open(self.cache_dir, 'w') as cache_file:
-            json_records = json.dumps(self.record_list, cls=ResourceEncoder, indent=4)
+            json_records = json.dumps(list(self.records), cls=ResourceEncoder, indent=4)
             cache_file.write(json_records)
             cache_file.close()
 
