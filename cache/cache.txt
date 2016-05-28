@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "ttl": 15, 
+        "type": "A", 
+        "name": "invalid.invalid", 
+        "rdata": "192.168.123.456", 
+        "class": "IN"
+    }
+]
