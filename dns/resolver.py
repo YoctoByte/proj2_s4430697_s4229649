@@ -9,11 +9,10 @@ DNS server, but with a different list of servers.
 
 import socket
 from threading import Thread
-# from Queue import Queue
 from dns.cache import RecordCache, MockedCache, CacheException
 from dns.classes import Class
 from dns import message
-# from dns.rcodes import RCode
+from dns.rcodes import RCode
 from dns.types import Type
 from dns.resource import ResourceRecord
 from time import sleep
@@ -194,7 +193,7 @@ class Resolver(object):
                 if self.addresses:
                     return
             if all(r == -1 for r in results):  # all results timed out or didn't return anything
-                raise ResolverException()
+                raise ResolverException(RCode.NXDomain)
             sleep(0.01)
 
     # step 4:
@@ -211,7 +210,7 @@ class Resolver(object):
             if answer_rr.type_ == Type.A:
                 self.CACHE.add_record(answer_rr)
                 self.addresses.append(answer_rr.rdata.data)
-            if answer_rr.type_ == Type.CNAME:
+            elif answer_rr.type_ == Type.CNAME:
                 self.CACHE.add_record(answer_rr)
                 new_sname = answer_rr.rdata.data
                 try:
@@ -220,8 +219,11 @@ class Resolver(object):
                 except ResolverException:
                     pass
                 return
+            else:
+                raise ResolverException(RCode.FormErr)
         if response.answers:
-            self.aliases = additionals
+            for additional in additionals:
+                self.aliases.append(additional.rdata.data)
             return
 
         new_slist = list()
@@ -235,10 +237,10 @@ class Resolver(object):
                         ip = additional.rdata.data
                 # todo: if better delegation:
                 new_slist.append((rr.rdata.data, ip))
-            if rr.type_ == Type.A and rr.class_ == Class.IN:
-                print('authority contained an A type record!')
-            if rr.type_ == Type.CNAME:
-                print('authority contained an CNAME type record!')
+            elif rr.type_ == Type.SOA:
+                pass
+            else:
+                raise ResolverException(RCode.FormErr)
         if new_slist:
             try:
                 next_resolver = Resolver(self.caching, self.ttl, self.CACHE)
@@ -267,7 +269,7 @@ class ResolverException(Exception):
 
 if __name__ == "__main__":  # anders wordt onderstaande gerunt op het moment dat deze klasse wordt geimporteerd
     resolver = Resolver(True, 3600)
-    _, ips, als = resolver.gethostbyname('www.tweakers.net')
+    _, ips, als = resolver.gethostbyname('www.ishetal.nl')
     for ip in ips:
         print('IP Address resolved: ' + ip)
     for alias in als:

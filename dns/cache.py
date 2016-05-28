@@ -9,9 +9,7 @@ It is highly recommended to use these.
 """
 
 import json
-
 import time
-
 from dns.resource import ResourceRecord, RecordData
 from dns.types import Type
 from dns.classes import Class
@@ -107,10 +105,16 @@ class RecordCache(object):
 
     def read_cache_file(self):
         """ Read the cache file from disk """
-        with open(self.cache_dir, 'r') as cache_file:
-            json_records = cache_file.read()
-            self.records = set(json.loads(json_records, object_hook=ResourceEncoder.resource_from_json))
-            cache_file.close()
+        max_tries = 3
+        for _ in range(max_tries):
+            with open(self.cache_dir, 'r') as cache_file:
+                json_records = cache_file.read()
+                try:
+                    self.records = set(json.loads(json_records, object_hook=ResourceEncoder.resource_from_json))
+                    cache_file.close()
+                    break
+                except ValueError:
+                    pass
 
     def write_cache_file(self):
         """ Write the cache file to disk """
