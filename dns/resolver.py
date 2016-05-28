@@ -269,7 +269,7 @@ class ResolverException(Exception):
 
 if __name__ == "__main__":  # anders wordt onderstaande gerunt op het moment dat deze klasse wordt geimporteerd
     resolver = Resolver(True, 3600)
-    _, ips, als = resolver.gethostbyname('www.ishetal.nl')
+    _, ips, als = resolver.gethostbyname('www.google.com')
     for ip in ips:
         print('IP Address resolved: ' + ip)
     for alias in als:
