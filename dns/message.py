@@ -287,3 +287,38 @@ class Question(object):
         qname = qnames[0]
         qtype, qclass = struct.unpack_from("!2H", packet, offset)
         return cls(qname, qtype, qclass), offset + 4
+
+
+class Section(object):
+    def __init__(self, qname, qtype, qclass, ttl, rdlength, rdata):
+        """ Create a new entry in the question section
+
+        Args:
+            qname (str): QNAME
+            qtype (Type): QTYPE
+            qclass (Class): QCLASS
+        """
+        self.qname = qname
+        self.qtype = qtype
+        self.qclass = qclass
+        self.ttl = ttl
+        self.rdlength = rdlength
+        self.rdata = rdata
+
+    def to_bytes(self, offset, composer):
+        """ Convert Question to bytes """
+        bqname = composer.to_bytes(offset, [self.qname])
+        bqtype = struct.pack("!H", self.qtype)
+        bqclass = struct.pack("!H", self.qclass)
+        bttl = struct.pack("!H", self.ttl)
+        brdlength = struct.pack("!H", self.rdlength)
+        brdata = composer.to_bytes(offset, [self.rdata])
+        return bqname + bqtype + bqclass + bttl + brdlength + brdata
+
+    @classmethod
+    def from_bytes(cls, packet, offset, parser):
+        """ Convert Question from bytes """
+        qnames, offset = parser.from_bytes(packet, offset, 1)
+        qname = qnames[0]
+        qtype, qclass = struct.unpack_from("!2H", packet, offset)
+        return cls(qname, qtype, qclass), offset + 4

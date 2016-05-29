@@ -35,9 +35,9 @@ class Resolver(object):
         self.caching = caching
         if not cache:
             if self.caching:
-                self.CACHE = RecordCache(15)
+                self.CACHE = RecordCache(self.ttl)
             else:
-                self.CACHE = MockedCache(15)
+                self.CACHE = MockedCache(self.ttl)
         else:
             self.CACHE = cache
         self.STYPE = Type.A
