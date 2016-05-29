@@ -100,11 +100,8 @@ class RecordCache(object):
         elif record.type_ not in [Type.A, Type.CNAME, Type.NS]:
             raise CacheException('Only A, CNAME and NS-Resource Records may be cached, actual type is ' + Type.to_string(record.type_))
 
-        to_be_removed = set()
-        for r in set(self.records):
-            if r.name == record.name and r.rdata.data == record.rdata.data:
-                to_be_removed.add(r)
-        self.records = self.records.difference(to_be_removed)
+        self.records = set([r for r in self.records
+                            if not (r.name == record.name and r.rdata.data == record.rdata.data)])
         self.records.add(record)
 
     def read_cache_file(self):
@@ -122,11 +119,7 @@ class RecordCache(object):
 
     def write_cache_file(self):
         """ Write the cache file to disk """
-        to_be_removed = set()
-        for record in self.records:
-            if record.time + record.ttl < time.time():
-                to_be_removed.add(record)
-        self.records = self.records.difference(to_be_removed)
+        self.records = set([r for r in self.records if r.time + r.ttl > time.time()])
         with open(self.cache_dir, 'w') as cache_file:
             json_records = json.dumps(list(self.records), cls=ResourceEncoder, indent=4)
             cache_file.write(json_records)

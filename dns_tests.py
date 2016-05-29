@@ -41,7 +41,7 @@ class TestResolver(unittest.TestCase):
 class TestRecordCache(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.ttl = 15
+        cls.ttl = 3
         rr = ResourceRecord("wiki.nl", Type.A, Class.IN, cls.ttl, RecordData.create(Type.A, "192.168.123.456"))
 
     def test_cache_lookup(self):
