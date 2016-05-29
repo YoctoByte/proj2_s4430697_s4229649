@@ -54,13 +54,9 @@ class RecordCache(object):
     """ Cache for ResourceRecords """
     cache_dir = 'cache.json'
 
-    def __init__(self, ttl):
+    def __init__(self):
         """ Initialize the RecordCache
-
-        Args:
-            ttl (int): TTL of cached entries (if > 0)
         """
-        self.ttl = ttl
         self.records = set()
 
     def lookup(self, dname, type_, class_):
@@ -128,7 +124,7 @@ class RecordCache(object):
 
 class MockedCache:
     """ Mockup cache that does nothing """
-    def __init__(self, ttl):
+    def __init__(self):
         pass
 
     def lookup(self, dname, type_, class_):

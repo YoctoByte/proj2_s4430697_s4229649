@@ -24,22 +24,22 @@ from time import sleep
 class Resolver(object):
     """ DNS resolver """
     
-    def __init__(self, caching, ttl, cache=None):
+    def __init__(self, caching, cache=None):
         """ Initialize the resolver
         
         Args:
             caching (bool): caching is enabled if True
             ttl (int): ttl of cache entries (if > 0)
         """
-        self.ttl = ttl
         self.caching = caching
-        if not cache:
-            if self.caching:
-                self.CACHE = RecordCache(self.ttl)
-            else:
-                self.CACHE = MockedCache(self.ttl)
-        else:
+        if cache:
             self.CACHE = cache
+        else:
+            if self.caching:
+                self.CACHE = RecordCache()
+            else:
+                self.CACHE = MockedCache()
+
         self.STYPE = Type.A
         self.SCLASS = Class.IN
         self.SLIST = []
@@ -146,7 +146,7 @@ class Resolver(object):
                         a_rr = self.CACHE.lookup(server_name, Type.A, Class.IN)[0]
                         server_ip = a_rr.rdata.data
                     except IndexError:
-                        ns_resolver = Resolver(self.caching, self.ttl, self.CACHE)
+                        ns_resolver = Resolver(self.caching, self.CACHE)
                         _, addresses, _ = ns_resolver.gethostbyname(server_name)
                         if addresses:
                             server_ip = addresses[0]
@@ -214,7 +214,7 @@ class Resolver(object):
                 self.CACHE.add_record(answer_rr)
                 new_sname = answer_rr.rdata.data
                 try:
-                    cname_resolver = Resolver(self.caching, self.ttl, self.CACHE)
+                    cname_resolver = Resolver(self.caching, self.CACHE)
                     self.SNAME, self.addresses, self.aliases = cname_resolver.gethostbyname(new_sname)
                 except ResolverException:
                     pass
@@ -243,7 +243,7 @@ class Resolver(object):
                 raise ResolverException(RCode.FormErr)
         if new_slist:
             try:
-                next_resolver = Resolver(self.caching, self.ttl, self.CACHE)
+                next_resolver = Resolver(self.caching, self.CACHE)
                 self.SNAME, self.addresses, self.aliases = next_resolver.gethostbyname(self.SNAME, new_slist)
             except ResolverException:
                 pass
