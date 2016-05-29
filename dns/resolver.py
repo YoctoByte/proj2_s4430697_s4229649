@@ -29,7 +29,6 @@ class Resolver(object):
         
         Args:
             caching (bool): caching is enabled if True
-            ttl (int): ttl of cache entries (if > 0)
         """
         self.caching = caching
         if cache:
