@@ -35,7 +35,6 @@ class RequestHandler(Thread):
             questions = self.received_message.questions[0]
             qd_count = len(questions)
         except IndexError:
-            # todo
             return
 
         # if recv_header.rd:
@@ -43,7 +42,6 @@ class RequestHandler(Thread):
             resolver = Resolver(True)
             answer_sname, addresses, aliasses = resolver.gethostbyname(questions[0].rdata.data)
         except ResolverException as e:
-            # todo
             print e
             return
 
@@ -95,4 +93,5 @@ class Server(object):
     def shutdown(self):
         """ Shutdown the server """
         self.done = True
-        # TODO: shutdown socket
+        self.server_socket.shutdown(socket.SHUT_RDWR)
+        self.server_socket.close()

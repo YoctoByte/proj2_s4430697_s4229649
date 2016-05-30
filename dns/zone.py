@@ -42,9 +42,6 @@ class Zone(object):
             record_set ([ResourceRecord]): resource records
         """
         self.records[name] = record_set
-        # TODO: op https://piazza.com/class/ijcqpohqqe4yp?cid=19 staat:
-        # In case the records of a zone are missing the class field (as is the
-        # case for named.root), just default their class values to IN.
 
     def read_master_file(self, filename):
         """ Read the zone from a master file
