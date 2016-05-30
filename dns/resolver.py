@@ -263,7 +263,7 @@ class ResolverException(Exception):
 
 
 if __name__ == "__main__":
-    resolver = Resolver(True, 3600)
+    resolver = Resolver(True)
     _, ips, als = resolver.gethostbyname('www.google.com')
     for ip in ips:
         print('IP Address resolved: ' + ip)

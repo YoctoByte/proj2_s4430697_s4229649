@@ -40,7 +40,7 @@ class RequestHandler(Thread):
 
         # if recv_header.rd:
         try:
-            resolver = Resolver(True, 15)
+            resolver = Resolver(True)
             answer_sname, addresses, aliasses = resolver.gethostbyname(questions[0].rdata.data)
         except ResolverException as e:
             # todo
