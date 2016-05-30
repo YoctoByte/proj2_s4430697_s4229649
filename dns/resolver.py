@@ -262,7 +262,7 @@ class ResolverException(Exception):
     pass
 
 
-if __name__ == "__main__":  # anders wordt onderstaande gerunt op het moment dat deze klasse wordt geimporteerd
+if __name__ == "__main__":
     resolver = Resolver(True, 3600)
     _, ips, als = resolver.gethostbyname('www.google.com')
     for ip in ips:
