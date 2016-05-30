@@ -9,7 +9,7 @@ import time
 
 from dns.cache import RecordCache
 from dns.classes import Class
-from dns.resolver import Resolver
+from dns.resolver import Resolver, ResolverException
 from dns.resource import RecordData, ResourceRecord
 from dns.types import Type
 
@@ -32,7 +32,10 @@ class TestResolver(unittest.TestCase):
 
     def test_invalid_FQDN(self):
         invalid_FQDN = 'wuiefhiwhao.rerttd.nl'
-        hostname, addresses, aliases = self.resolver.gethostbyname(invalid_FQDN)
+        try:
+            hostname, addresses, aliases = self.resolver.gethostbyname(invalid_FQDN)
+        except ResolverException:
+            hostname, addresses, aliases = invalid_FQDN, [], []
         self.assertEqual(hostname, invalid_FQDN)
         self.assertFalse(aliases)
         self.assertFalse(addresses)
@@ -112,7 +115,7 @@ class TestResolverCache(unittest.TestCase):
         hostname,  addresses, aliases = self.resolver.gethostbyname(self.rr.name)
         self.assertEqual(hostname, self.rr.name)
         self.assertFalse(aliases)
-        self.assertEqual(addresses, self.rr.rdata.data)
+        self.assertEqual(addresses[0], self.rr.rdata.data)
 
     def test_wait_for_TTL_expiration(self):
         time.sleep(self.rr.ttl)
