@@ -32,7 +32,7 @@ class TestResolver(unittest.TestCase):
 
     def test_invalid_FQDN(self):
         invalid_FQDN = 'wuiefhiwhao.rerttd.nl'
-        hostname, aliases, addresses = self.resolver.gethostbyname(invalid_FQDN)
+        hostname, addresses, aliases = self.resolver.gethostbyname(invalid_FQDN)
         self.assertEqual(hostname, invalid_FQDN)
         self.assertFalse(aliases)
         self.assertFalse(addresses)
@@ -103,20 +103,20 @@ class TestResolverCache(unittest.TestCase):
     def test_solve_FQDN(self):
         umass_FQDN = 'gaia.cs.umass.edu'
         umass_IP = '128.119.245.12'
-        hostname, aliases, addresses = self.resolver.gethostbyname(umass_FQDN)
+        hostname, addresses, aliases = self.resolver.gethostbyname(umass_FQDN)
         self.assertEqual(hostname, umass_FQDN)
         self.assertFalse(aliases)
         self.assertEqual(addresses, [umass_IP])
 
     def test_invalid_cached_FQDN(self):
-        hostname, aliases, addresses = self.resolver.gethostbyname(self.rr.name)
+        hostname,  addresses, aliases = self.resolver.gethostbyname(self.rr.name)
         self.assertEqual(hostname, self.rr.name)
         self.assertFalse(aliases)
         self.assertEqual(addresses, self.rr.rdata.data)
 
     def test_wait_for_TTL_expiration(self):
         time.sleep(self.rr.ttl)
-        hostname, aliases, addresses = self.resolver.gethostbyname(self.rr.name)
+        hostname, addresses, aliases = self.resolver.gethostbyname(self.rr.name)
         self.assertEqual(hostname, self.rr.name)
         self.assertFalse(aliases)
         self.assertFalse(addresses)
