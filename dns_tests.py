@@ -20,7 +20,7 @@ server = "localhost"
 class TestResolver(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.resolver = Resolver(False, 0)
+        cls.resolver = Resolver(False)
 
     def test_solve_FQDN(self):
         umass_FQDN = 'gaia.cs.umass.edu'
@@ -49,7 +49,7 @@ class TestRecordCache(unittest.TestCase):
         Add a record to the cache and look it up
         """
         rr = ResourceRecord("wiki.nl", Type.A, Class.IN, self.ttl, RecordData.create(Type.A, "192.168.123.456"))
-        cache = RecordCache(rr.ttl)
+        cache = RecordCache()
         cache.add_record(rr)
         lookup_vals = cache.lookup("wiki.nl", Type.A, Class.IN)
         self.assertEqual([rr], lookup_vals)
@@ -59,7 +59,7 @@ class TestRecordCache(unittest.TestCase):
         Add a record to the cache, write to disk, read from disk, do a lookup
         """
         rr = ResourceRecord("wiki.nl", Type.A, Class.IN, self.ttl, RecordData.create(Type.A, "192.168.123.456"))
-        cache = RecordCache(rr.ttl)
+        cache = RecordCache()
         cache.write_cache_file() # overwrite the current cache file
 
         # add rr to cache and write to disk
@@ -67,7 +67,7 @@ class TestRecordCache(unittest.TestCase):
         cache.write_cache_file()
 
         # read from disk again
-        new_cache = RecordCache(rr.ttl)
+        new_cache = RecordCache()
         new_cache.read_cache_file()
         lookup_vals = new_cache.lookup("wiki.nl", Type.A, Class.IN)
         self.assertEqual([rr], lookup_vals)
@@ -77,7 +77,7 @@ class TestRecordCache(unittest.TestCase):
         cache a record, wait till ttl expires, see if record is removed from cache
         """
         rr = ResourceRecord("wiki.nl", Type.A, Class.IN, self.ttl, RecordData.create(Type.A, "192.168.123.456"))
-        cache = RecordCache(rr.ttl)
+        cache = RecordCache()
         cache.add_record(rr)
 
         time.sleep(rr.ttl)
@@ -96,7 +96,7 @@ class TestResolverCache(unittest.TestCase):
         record_data = RecordData.create(Type.A, "192.168.123.456")
         self.rr = ResourceRecord("invalid.invalid", Type.A, Class.IN, 3, record_data)
 
-        cache = RecordCache(15)
+        cache = RecordCache()
         cache.add_record(self.rr)
         cache.write_cache_file()
 
