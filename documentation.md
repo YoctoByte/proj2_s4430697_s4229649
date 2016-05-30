@@ -17,7 +17,7 @@ Table of Contents
 1.1   Libraries Used
 2     Control Flow
 2.1   Name Server
-2.2   Resolver
+2.2   Resolver (gethostbyname)
 3     Difficulties
 
 
@@ -65,7 +65,21 @@ the request is 1 it is able to process the data because then it uses the resolve
 IP address. Otherwise it should consult the zone file to get information for the response. The zone file was not
 implemented yet.
 
-2.2 Resolver
-
+2.2 Resolver (gethostbyname)
+The implementation of the gethostbyname function in the resolver makes use of recursion. First it checks the cache
+iteratively for CNAMEs. After that it checks if the desired hostname is in the cache. If so, the address is returned
+and the function quits. Then the SLIST is updated with the best matching name servers.
+When the SLIST is created, a request is send to all servers in the SLIST. If a server has no IP address that address
+is resolved first. The responses are stored in a list for possible future referencing. After the requests are send, a
+while loop checks periodically for responses and after a response is received it is analysed.
+During the analyzing of the response, first the additionals are added to the cache. After that the answer section is
+analyzed. If a CNAME is received, a new gethostbyname is started for that CNAME and the result is returned. If an
+A record is received the addresses variable is set to that address and the aliases variable is set to the received
+additional data. Because now addresses is not empty anymore, all functions return and gethostbyname returns the
+address and aliases.
+In the case that authoritative records are received the NS records are cached and a new SLIST is build with all the NS
+records in the received data. A new gethostbyname is started with this SLIST as parameter. This way the resolvers get
+closer to the answer every time a new gethostbyname is started.
+- analyze response
 
 3 Difficulties

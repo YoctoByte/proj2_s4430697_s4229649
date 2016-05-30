@@ -18,9 +18,6 @@ from dns.resource import ResourceRecord
 from time import sleep
 
 
-# todo: implement pending_requests: pending_requests is een lijst met "state blocks" die een tijd, wat parameters en de SLIST bevatten
-
-
 class Resolver(object):
     """ DNS resolver """
     
@@ -188,7 +185,7 @@ class Resolver(object):
                         break
                 print('--------\nserver: ' + str(server_data[0]) + ', ' + str(server_data[1]))
                 self.show_response(response)
-                self.analyze_response(response, server_data)
+                self.analyze_response(response)
                 if self.addresses:
                     return
             if all(r == -1 for r in results):  # all results timed out or didn't return anything
@@ -196,8 +193,8 @@ class Resolver(object):
             sleep(0.01)
 
     # step 4:
-    def analyze_response(self, response, server_data):
-        additionals = list()
+    def analyze_response(self, response):
+        additionals = list()  # this list makes sure no cache lookups for additional information are necessary.
         for additional_rr in response.additionals:
             try:
                 self.CACHE.add_record(additional_rr)
@@ -234,7 +231,6 @@ class Resolver(object):
                 for additional in additionals:
                     if additional.name == rr.rdata.data and additional.type_ == Type.A:
                         ip = additional.rdata.data
-                # todo: if better delegation:
                 new_slist.append((rr.rdata.data, ip))
             elif rr.type_ == Type.SOA:
                 pass
