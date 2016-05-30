@@ -12,15 +12,12 @@ The DNS Resolver can be found in dns/resolver.py. A resolver object can be const
 - `-p`: port number, defaults to 5353
 
 
-
-
-
 Table of Contents
 1     Structure
 1.1   Libraries Used
 2     Control Flow
-2.1   name server
-2.2   resolver
+2.1   Name Server
+2.2   Resolver
 3     Difficulties
 
 
@@ -59,7 +56,7 @@ passed to it. When executed, dns_server.py creates an instance of the Server cla
 Another important module is resolver.py which makes use of cache.py for caching. The cache stores it data in the memory
 and on the disk in the cache.json file.
 
-2.1 name server
+2.1 Name Server
 When the Server class is initiated and the serve function is executed within dns_server.py, it starts listening to UDP
 packages on the port it receives from dns_server.py (default 5353). When a package of 512 bytes is received it created
 a RequestHandler thread which processes the data from the request. The control flow of RequestHandler should follow
@@ -68,5 +65,7 @@ the request is 1 it is able to process the data because then it uses the resolve
 IP address. Otherwise it should consult the zone file to get information for the response. The zone file was not
 implemented yet.
 
-2.2 resolver
+2.2 Resolver
 
+
+3 Difficulties
