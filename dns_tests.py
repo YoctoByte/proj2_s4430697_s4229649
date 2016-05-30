@@ -25,7 +25,7 @@ class TestResolver(unittest.TestCase):
     def test_solve_FQDN(self):
         umass_FQDN = 'gaia.cs.umass.edu'
         umass_IP = '128.119.245.12'
-        hostname, aliases, addresses = self.resolver.gethostbyname(umass_FQDN)
+        hostname, addresses, aliases = self.resolver.gethostbyname(umass_FQDN)
         self.assertEqual(hostname, umass_FQDN)
         self.assertFalse(aliases)
         self.assertEqual(addresses, [umass_IP])
@@ -89,7 +89,7 @@ class TestRecordCache(unittest.TestCase):
 class TestResolverCache(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.resolver = Resolver(True, 10)
+        cls.resolver = Resolver(True)
 
     def setUp(self):
         # put invalid record in cache file
